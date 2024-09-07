@@ -1,0 +1,7 @@
+### 테스트
+POST http://localhost:3000/text
+Content-Type: application/json
+
+{
+    "text": "There's an emergency evacuation happening now in the building across the street."
+}

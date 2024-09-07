@@ -5,10 +5,15 @@ import requests
 import pandas as pd
 from tensorflow.keras.layers import TextVectorization
 from sklearn.model_selection import train_test_split
-import json
+import time
+import psutil
+import os
 
 # FastAPI 애플리케이션 인스턴스 생성
 app = FastAPI()
+
+# 메모리확인용
+process = psutil.Process(os.getpid())
 
 # 데이터 로드 (훈련 데이터가 필요)
 train_df = pd.read_csv("../data/train.csv")
@@ -50,9 +55,13 @@ def vector_to_list(tensor):
 
 class TextInput(BaseModel):
     text: str
-
+ 
 @app.post("/predict")
 async def predict(input: TextInput):
+
+    # 시작 시간 기록
+    start_time = time.time()
+
     try:
         input_text = input.text
         text_tensor = convert_text_to_tensor(input_text)
@@ -68,12 +77,23 @@ async def predict(input: TextInput):
         print(ten.shape)
 
         # 예측 API 호출 준비
-        url = "http://localhost:8501/v1/models/nlp_model:predict"
+        url = "http://localhost:8501/v1/models/lstm_model:predict"
         payload = {"instances": ten.numpy().tolist()}  # 이미 리스트이므로 별도 직렬화 불필요
         headers = {"Content-Type": "application/json"}
 
         # 요청 보내기
         response = requests.post(url, json=payload, headers=headers)
+
+                # 종료 시간 및 리소스 사용량 기록
+        end_time = time.time()  # 종료 시간 기록
+        execution_time = end_time - start_time  # 실행 시간 계산
+
+        # 메모리 사용량 계산
+        memory_usage_bytes = process.memory_info().rss  # RSS(Resident Set Size)는 프로세스가 사용하는 물리 메모리의 양입니다.
+        memory_usage_mb = memory_usage_bytes / (1024 * 1024)  # 바이트를 메가바이트로 변환
+
+        print(f"Execution Time: {execution_time:.4f} seconds")
+        print(f"Memory Usage: {memory_usage_mb:.2f} MB")
 
         # 응답 출력
         print(response.json())
