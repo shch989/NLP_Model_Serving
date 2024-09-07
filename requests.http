@@ -3,5 +3,5 @@ POST http://localhost:8000/predict
 Content-Type: application/json
 
 {
-    "text": "There's an emergency evacuation happening now in the building across the street"
+    "text": "There's an emergency evacuation happening now in the building across the street."
 }

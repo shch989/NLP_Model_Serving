@@ -35,7 +35,7 @@ text_vectorizer = TextVectorization(max_tokens=max_vocab_length,
 text_vectorizer.adapt(train_sentences)
 
 # 모델 로드
-model_2 = tf.keras.models.load_model("./lstm/20240906_tf.h5", custom_objects={"TextVectorization": text_vectorizer})
+model_2 = tf.keras.models.load_model("./gru/20240906_tf_gru_2.h5", custom_objects={"TextVectorization": text_vectorizer})
 
 # 모델에서 올바른 이름의 TextVectorization 레이어 가져오기
 text_vectorizer = model_2.get_layer("text_vectorization_1")
@@ -53,8 +53,15 @@ async def predict(input: TextInput):
         # pandas Series를 Tensor로 변환
         test_tensor = tf.constant(test_series)
 
+        # 텍스트를 벡터로 변환
+        input_vector = text_vectorizer(test_tensor)
+        input_vector_list = input_vector.numpy().tolist()
+        
         # 예측 수행
         model_2_pred_probs = model_2.predict(test_tensor)
+
+
+        print(model_2_pred_probs)
         model_2_preds = tf.squeeze(tf.round(model_2_pred_probs[0][0]))
 
         value = model_2_preds.numpy()
